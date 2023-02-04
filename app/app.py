@@ -1,14 +1,11 @@
-# app.py
-
-import os
-
 import boto3
 
 from flask import Flask, jsonify, request
-app = Flask(__name__)
 
-client = boto3.client('dynamodb', region_name='us-east-1')
-dynamoTableName = 'musicTable'
+app = Flask(__name__)
+client = boto3.client("dynamodb", region_name="us-east-1")
+dynamoTableName = "musicTable"
+
 
 @app.route("/")
 def hello():
@@ -20,40 +17,41 @@ def get_artist(artist):
     resp = client.get_item(
         TableName=dynamoTableName,
         Key={
-            'artist': { 'S': artist }
+            "artist": {"S": artist}
         }
     )
-    item = resp.get('Item')
+    item = resp.get("Item")
     if not item:
-        return jsonify({'error': 'Artist does not exist'}), 404
+        return jsonify({"error": "Artist does not exist"}), 404
 
     return jsonify({
-        'artist': item.get('artist').get('S'),
-        'song': item.get('song').get('S')
+        "artist": item.get("artist").get("S"),
+        "song": item.get("song").get("S")
     })
 
 
 @app.route("/v1/bestmusic/90s", methods=["POST"])
 def create_artist():
-    artist = request.json.get('artist')
-    song = request.json.get('song')
+    artist = request.json.get("artist")
+    song = request.json.get("song")
     if not artist or not song:
-        return jsonify({'error': 'Please provide Artist and Song'}), 400
+        return jsonify({"error": "Please provide Artist and Song"}), 400
 
-    resp = client.put_item(
+    resp = client.put_item(  # noqa: F841
         TableName=dynamoTableName,
         Item={
-            'artist': {'S': artist },
-            'song': {'S': song }
+            "artist": {"S": artist},
+            "song": {"S": song},
         }
     )
+    # XXX does resp contain artist and song now?
+    # XXX should they be pulled out of what client.put_item returned?
 
     return jsonify({
-        'artist': artist,
-        'song': song
+        "artist": artist,
+        "song": song
     })
 
 
-if __name__ == '__main__':
-    app.run(threaded=True,host='0.0.0.0',port=5000)
-
+if __name__ == "__main__":
+    app.run(threaded=True, host="0.0.0.0", port=5000)
